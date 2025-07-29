@@ -1,4 +1,4 @@
-<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/23015724-a291-44b6-a0a5-80651d389447" />
+<img width="800" height="800" alt="image" src="https://github.com/user-attachments/assets/23015724-a291-44b6-a0a5-80651d389447" />
 # ROBLOX-COMBO-CHECKER
 
 
