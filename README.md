@@ -1,3 +1,4 @@
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/23015724-a291-44b6-a0a5-80651d389447" />
 # ROBLOX-COMBO-CHECKER
 
 
@@ -12,6 +13,10 @@ we host
 
 1 - ROBLOX COMBO CHECKERS
 # checks your user:pass roblox combos
+
+
+3 - bulk roblox alt gen
+# generate bulk amounts of accounts from thousands of unchecked accounts might get lucky
 
 
 2 - roblox alt gen
@@ -30,3 +35,6 @@ we host
 
 6 - hotmail combo scanners
 # checks your hotmail user:pass combos for valid logins working will be sent to your discord webhook
+
+
+<img width="2816" height="827" alt="image" src="https://github.com/user-attachments/assets/a8f8597c-2e59-487e-9484-820667acc1a9" />
