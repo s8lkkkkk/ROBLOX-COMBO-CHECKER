@@ -38,7 +38,7 @@ we host
 
 
 7 - rent a guild
-# safely and cheaply rent out a custom guild owned by you for a set amount of time we agree om
+# safely and cheaply rent out a custom guild owned by you for a set amount of time we agree on
 
 
 <img width="2816" height="827" alt="image" src="https://github.com/user-attachments/assets/a8f8597c-2e59-487e-9484-820667acc1a9" />
