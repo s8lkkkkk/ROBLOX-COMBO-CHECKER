@@ -11,7 +11,7 @@ https://discord.gg/a9m6nrgJVD
 we host 
 
 1 - ROBLOX COMBO CHECKERS
-# checks your user:pass roblox conbos
+# checks your user:pass roblox combos
 
 
 2 - roblox alt gen
