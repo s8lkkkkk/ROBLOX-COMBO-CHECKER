@@ -1,7 +1,7 @@
-<img width="800" height="800" alt="image" src="https://github.com/user-attachments/assets/23015724-a291-44b6-a0a5-80651d389447" />
+
 # ROBLOX-COMBO-CHECKER
 
-
+<img width="400" height="400" alt="image" src="https://github.com/user-attachments/assets/23015724-a291-44b6-a0a5-80651d389447" />
 
 # We can not host this on git hub join our discord 
 
