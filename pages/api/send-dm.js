@@ -4,8 +4,8 @@ import fetch from 'node-fetch';
 const app = express();
 
 // Replace these with your values directly
-const CLIENT_ID = "YOUR_CLIENT_ID";
-const CLIENT_SECRET = "YOUR_CLIENT_SECRET";
+const CLIENT_ID = "1421616821995442306";
+const CLIENT_SECRET = "OYp8SMFd7NTQcS6lyLXTl-x86cAKqJuZ";
 const REDIRECT_URI = "http://localhost:3000/callback";
 const BOT_TOKEN = "YOUR_BOT_TOKEN";
 
