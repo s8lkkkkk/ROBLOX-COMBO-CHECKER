@@ -1,1 +1,13 @@
-
+{
+  "name": "discord-oauth-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "querystring": "^0.2.1"
+  }
+}
