@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Discord OAuth2 DM Demo</title>
+  <title>Discord OAuth2 Channel Embed Demo</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f6f8fb; }
     button { padding: 10px 16px; border-radius: 6px; background: #5865f2; color: white; border: none; cursor: pointer; }
@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-  <h1>Discord OAuth2 DM Demo</h1>
+  <h1>Discord OAuth2 Channel Embed Demo</h1>
   <button id="loginBtn">Login with Discord</button>
 
   <h2>User Data</h2>
@@ -20,8 +20,7 @@
     const loginBtn = document.getElementById('loginBtn');
     const userDataPre = document.getElementById('userData');
 
-    // Replace with your own client ID and redirect URI
-    const CLIENT_ID = "YOUR_CLIENT_ID";
+    const CLIENT_ID = "1421616821995442306"; // Your Discord App Client ID
     const REDIRECT_URI = encodeURIComponent("http://localhost:3000/callback");
     const SCOPE = encodeURIComponent("identify email");
     const oauthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
@@ -30,7 +29,6 @@
       window.location.href = oauthUrl;
     });
 
-    // When redirected back with ?code=AUTH_CODE
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     if (code) {
