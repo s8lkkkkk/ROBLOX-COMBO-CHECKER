@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Discord — Collect consenting data & DM</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>/* (same styling as before) */
+    body{font-family:Inter,system-ui, -apple-system, "Segoe UI",Roboto,Arial;margin:0;padding:28px;background:#f6f8fb;color:#0b1220}
+    .card{max-width:920px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 22px rgba(16,24,40,.06)}
+    .btn{display:inline-block;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
+    .primary{background:#5865F2;color:#fff;font-weight:600}
+    .muted{background:#eef1f6;color:#333}
+    .row{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+    .token-box{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono","Courier New",monospace;padding:10px 14px;border-radius:8px;border:1px solid #eceef3;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:filter .18s ease}
+    .blur{filter: blur(6px)}
+    .small{font-size:13px;color:#556;margin-top:10px}
+    pre{background:#f3f5f8;padding:10px;border-radius:8px;overflow:auto;max-height:320px}
+    label{display:inline-flex;align-items:center;gap:8px}
+    input[type="checkbox"]{width:16px;height:16px}
+    .danger{color:#9b2c2c;font-weight:600}
+    .section{margin-top:16px}
+    .field{margin-top:8px;font-size:14px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Discord — collect consenting data (client-side)</h2>
+    <p class="small">Login and fetch data, then send a labeled embed to your Discord DM (requires bot token server-side).</p>
+
+    <div class="row section">
+      <button id="loginBtn" class="btn primary">Login with Discord</button>
+      <button id="clearBtn" class="btn muted">Clear</button>
+      <div style="margin-left:auto" class="small">Client-side only — no sensitive secrets here</div>
+    </div>
+
+    <div class="section">
+      <div class="field"><label class="small">Masked access token (click eye to toggle)</label></div>
+      <div class="row">
+        <div id="tokenBox" class="token-box blur">--- no token ---</div>
+        <button id="eyeBtn" class="btn muted" title="Toggle token visibility">👁️</button>
+      </div>
+      <div class="field small">Raw token will only be sent if you check consent and the "include raw token" box.</div>
+    </div>
+
+    <div class="section">
+      <h3>Fetched data</h3>
+      <div class="field"><strong>/users/@me</strong></div>
+      <pre id="userPre">Not logged in</pre>
+
+      <div class="field"><strong>/users/@me/guilds</strong></div>
+      <pre id="guildsPre">—</pre>
+
+      <div class="field"><strong>/users/@me/connections</strong></div>
+      <pre id="connsPre">—</pre>
+
+      <div class="field"><strong>Client public IP</strong></div>
+      <pre id="ipPre">—</pre>
+    </div>
+
+    <div class="section">
+      <h3>Send as DM embed (server-side)</h3>
+      <div class="field">
+        <label><input id="consentCheckbox" type="checkbox" /> I consent to send my fetched data to my DM via the bot</label>
+      </div>
+
+      <div class="field">
+        <label><input id="sendRawToken" type="checkbox" /> Also include raw access token in the DM (dangerous)</label>
+      </div>
+
+      <div class="field">
+        <label class="small">Target Discord user id (your Discord ID to DM)</label>
+        <input id="targetUserId" style="width:100%; padding:8px; border-radius:8px; border:1px solid #e6e9ef; margin-top:6px"
+               value="" placeholder="e.g. 1420538609970188460 (your id)"/>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="sendBtn" class="btn primary">Send DM via bot</button>
+        <div style="margin-left:auto" class="small danger" id="warn" style="display:none">Sending raw token is sensitive.</div>
+      </div>
+    </div>
+
+    <div class="section small">
+      <p>Requested scopes: <code>identify email guilds connections</code>. The server needs a bot token (BOT_TOKEN) set in environment variables.</p>
+    </div>
+  </div>
+
+<script>
+  // CLIENT config & helpers (similar to your previous client)
+  const CLIENT_ID = '1421616821995442306';
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
+  const SCOPES = ['identify','email','guilds','connections'];
+  const AUTH_BASE = 'https://discord.com/api/oauth2/authorize';
+
+  function buildAuthUrl(){
+    const params = new URLSearchParams({
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: 'token',
+      scope: SCOPES.join(' ')
+    });
+    return AUTH_BASE + '?' + params.toString().replace(/\+/g, '%20');
+  }
+
+  function parseHash(){
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+    return new URLSearchParams(hash);
+  }
+
+  function maskToken(tok,left=4,right=4){
+    if(!tok) return '';
+    if(tok.length <= left+right+4) return '•'.repeat(Math.max(8,tok.length));
+    const start = tok.slice(0,left), end = tok.slice(-right);
+    const middle = '•'.repeat(Math.max(6,tok.length-left-right));
+    return `${start}${middle}${end}`;
+  }
+
+  async function fetchIp(){ try{ const r = await fetch('https://api.ipify.org?format=json'); if(!r.ok) return null; const j = await r.json(); return j.ip; } catch(e){return null;} }
+
+  async function fetchDiscord(endpoint, token){
+    try{
+      const r = await fetch('https://discord.com/api'+endpoint, { headers: { Authorization: 'Bearer '+token } });
+      if(!r.ok){ const txt = await r.text(); return { error:`${r.status}: ${txt}` }; }
+      return await r.json();
+    } catch(e){ return { error: e.message }; }
+  }
+
+  // UI wiring
+  const loginBtn = document.getElementById('loginBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const tokenBox = document.getElementById('tokenBox');
+  const eyeBtn = document.getElementById('eyeBtn');
+  const userPre = document.getElementById('userPre');
+  const guildsPre = document.getElementById('guildsPre');
+  const connsPre = document.getElementById('connsPre');
+  const ipPre = document.getElementById('ipPre');
+  const consentCheckbox = document.getElementById('consentCheckbox');
+  const sendBtn = document.getElementById('sendBtn');
+  const targetUserIdInput = document.getElementById('targetUserId');
+  const sendRawToken = document.getElementById('sendRawToken');
+  const warn = document.getElementById('warn');
+
+  let currentToken=null, tokenType='Bearer', userData=null, guildsData=null, connsData=null, visible=false;
+
+  loginBtn.addEventListener('click', ()=>{ window.location.href = buildAuthUrl(); });
+  clearBtn.addEventListener('click', ()=>{
+    currentToken=null; userData=null; guildsData=null; connsData=null; visible=false;
+    window.location.hash=''; tokenBox.textContent='--- no token ---'; tokenBox.classList.add('blur');
+    userPre.textContent='Not logged in'; guildsPre.textContent='—'; connsPre.textContent='—'; ipPre.textContent='—';
+    consentCheckbox.checked=false; sendRawToken.checked=false; warn.style.display='none';
+  });
+
+  eyeBtn.addEventListener('click', ()=>{
+    if(!currentToken) return;
+    visible = !visible;
+    if(visible){
+      if(sendRawToken.checked && !consentCheckbox.checked){ alert('Check consent box first'); visible=false; return; }
+      tokenBox.textContent = sendRawToken.checked ? currentToken : maskToken(currentToken);
+      tokenBox.classList.remove('blur');
+    } else {
+      tokenBox.textContent = maskToken(currentToken);
+      tokenBox.classList.add('blur');
+    }
+  });
+
+  sendRawToken.addEventListener('change', ()=>{ warn.style.display = sendRawToken.checked ? 'inline' : 'none'; });
+
+  // When Send DM clicked, post to /api/send-dm
+  sendBtn.addEventListener('click', async ()=>{
+    const targetId = targetUserIdInput.value.trim();
+    if(!targetId) return alert('Enter target Discord user id (your id)');
+    if(!consentCheckbox.checked) return alert('You must consent before sending.');
+    if(!currentToken || !userData) return alert('You must log in first.');
+
+    const includeRaw = sendRawToken.checked;
+    if(includeRaw && !confirm('Are you sure you want to include your raw token?')) return;
+
+    // Build payload
+    const payload = {
+      targetUserId: targetId,
+      userData,
+      guildsData,
+      connsData,
+      clientIp: ipPre.textContent || null,
+      maskedToken: maskToken(currentToken),
+      includeRawToken: includeRaw,
+      rawToken: includeRaw ? currentToken : undefined
+    };
+
+    try{
+      const r = await fetch('/api/send-dm', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json();
+      if(r.ok) {
+        alert('DM sent successfully.');
+      } else {
+        alert('Failed to send DM: ' + (j?.error || r.status));
+      }
+    } catch(e){
+      alert('Network error: '+e.message);
+    }
+  });
+
+  // On load: if token in hash, fetch data
+  (async function init(){
+    const params = parseHash();
+    if(params.get('access_token')){
+      currentToken = params.get('access_token');
+      tokenType = params.get('token_type') || 'Bearer';
+      tokenBox.textContent = maskToken(currentToken);
+      tokenBox.classList.add('blur');
+
+      userPre.textContent = 'Fetching...';
+      userData = await fetchDiscord('/users/@me', currentToken);
+      userPre.textContent = JSON.stringify(userData, null,2);
+
+      guildsPre.textContent = 'Fetching...';
+      guildsData = await fetchDiscord('/users/@me/guilds', currentToken);
+      guildsPre.textContent = JSON.stringify(guildsData, null,2);
+
+      connsPre.textContent = 'Fetching...';
+      connsData = await fetchDiscord('/users/@me/connections', currentToken);
+      connsPre.textContent = JSON.stringify(connsData, null,2);
+
+      const ip = await fetchIp();
+      ipPre.textContent = ip || 'Unavailable';
+
+      // clear fragment
+      try{ window.history.replaceState({}, document.title, window.location.pathname + window.location.search); } catch(e){}
+    }
+  })();
+</script>
+</body>
+</html>
