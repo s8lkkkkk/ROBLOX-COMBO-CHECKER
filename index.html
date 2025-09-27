@@ -21,7 +21,7 @@
     const userDataPre = document.getElementById('userData');
 
     // Your exact OAuth2 URL
-    const oauthUrl = "https://discord.com/oauth2/authorize?client_id=1421616821995442306&permissions=8&response_type=code&redirect_uri=https%3A%2F%2Fdiscord.com%2Fdevelopers%2Fapplications%2FYOUR_BOT_ID%2Foauth2%2Furl-generator&integration_type=1&scope=identify+guilds+voice+bot+email+guilds.join+connections+gdm.join";
+    const oauthUrl = "https://discord.com/oauth2/authorize?client_id=1421616821995442306&response_type=code&redirect_uri=https%3A%2F%2Fdiscord.com%2Fdevelopers%2Fapplications%2FYOUR_BOT_ID%2Foauth2%2Furl-generator&scope=identify+guilds+email+connections+openid";
 
     loginBtn.addEventListener('click', () => {
       window.location.href = oauthUrl;
