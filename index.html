@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Discord OAuth2 Demo</title>
+  <title>Discord OAuth2 DM Demo</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f6f8fb; }
     button { padding: 10px 16px; border-radius: 6px; background: #5865f2; color: white; border: none; cursor: pointer; }
@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-  <h1>Discord OAuth2 Demo</h1>
+  <h1>Discord OAuth2 DM Demo</h1>
   <button id="loginBtn">Login with Discord</button>
 
   <h2>User Data</h2>
@@ -20,8 +20,11 @@
     const loginBtn = document.getElementById('loginBtn');
     const userDataPre = document.getElementById('userData');
 
-    // Your exact OAuth2 URL
-    const oauthUrl = "https://discord.com/oauth2/authorize?client_id=1421616821995442306&response_type=code&redirect_uri=https%3A%2F%2Fdiscord.com%2Fdevelopers%2Fapplications%2FYOUR_BOT_ID%2Foauth2%2Furl-generator&scope=identify+guilds+email+connections+openid";
+    // Replace with your own client ID and redirect URI
+    const CLIENT_ID = "YOUR_CLIENT_ID";
+    const REDIRECT_URI = encodeURIComponent("http://localhost:3000/callback");
+    const SCOPE = encodeURIComponent("identify email");
+    const oauthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
 
     loginBtn.addEventListener('click', () => {
       window.location.href = oauthUrl;
@@ -33,8 +36,7 @@
     if (code) {
       userDataPre.textContent = "Exchanging code for access token…";
 
-      // Send code to your server endpoint (server exchanges for token safely)
-      fetch('/api/auth/callback?code=' + encodeURIComponent(code))
+      fetch('/send-dm?code=' + encodeURIComponent(code))
         .then(r => r.json())
         .then(data => {
           userDataPre.textContent = JSON.stringify(data, null, 2);
