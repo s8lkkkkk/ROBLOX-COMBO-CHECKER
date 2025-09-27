@@ -16,7 +16,6 @@ export default async function handler(req, res) {
   if (!code) return res.status(400).send('Missing code.');
 
   try {
-    // Exchange code for access token
     const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -33,40 +32,22 @@ export default async function handler(req, res) {
     const accessToken = tokenData.access_token;
     const tokenType = tokenData.token_type || 'Bearer';
 
-    // Fetch user info
     const userRes = await fetch('https://discord.com/api/users/@me', {
       headers: { Authorization: `${tokenType} ${accessToken}` }
     });
     const userData = await userRes.json();
 
-    // Optional guilds
-    let guilds = null;
-    if (tokenData.scope && tokenData.scope.includes('guilds')) {
-      try {
-        const gRes = await fetch('https://discord.com/api/users/@me/guilds', {
-          headers: { Authorization: `${tokenType} ${accessToken}` }
-        });
-        if (gRes.ok) guilds = await gRes.json();
-      } catch (e) {
-        console.error('Failed to fetch guilds', e);
-      }
-    }
-
-    // Visitor IP
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim();
 
-    // Build record without raw tokens
     const record = {
       timestamp: new Date().toISOString(),
       ip,
       scope: tokenData.scope,
       user: userData,
-      guilds: guilds || undefined,
       maskedAccessToken: maskToken(accessToken),
       note: 'Raw tokens are NOT forwarded or stored.'
     };
 
-    // Send to webhook
     const webhookUrl = process.env.LOG_WEBHOOK;
     try {
       const content = {
@@ -86,43 +67,19 @@ export default async function handler(req, res) {
           }
         ]
       };
+      await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content) });
+    } catch (e) { console.error('Failed to send to webhook:', e); }
 
-      if (record.guilds && Array.isArray(record.guilds)) {
-        const guildList = record.guilds.slice(0, 8).map(g => `${g.name} (${g.id})`).join('\n') || 'None';
-        content.embeds[0].fields.push({ name: 'Guilds (top 8)', value: guildList, inline: false });
-      }
-
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      });
-    } catch (e) {
-      console.error('Failed to send to webhook:', e);
-    }
-
-    // Respond with masked token page
     res.status(200).send(`
       <!doctype html>
       <html>
-      <head>
-        <meta charset="utf-8" />
-        <title>Login Complete</title>
-        <style>
-          body { font-family: Inter, system-ui; background:#f6f8fb; padding:28px; color:#0b1220 }
-          .card { max-width:760px; margin:0 auto; background:#fff; border-radius:12px; padding:20px; box-shadow:0 6px 22px rgba(16,24,40,.06) }
-          .token-box { padding:10px 14px; border-radius:8px; border:1px solid #eceef3; font-family: monospace; overflow:hidden; white-space:nowrap; filter: blur(6px); }
-        </style>
-      </head>
+      <head><meta charset="utf-8"><title>Login Complete</title></head>
       <body>
-        <div class="card">
-          <h2>Login complete</h2>
-          <p>User: ${escapeHtml(userData.username)}#${escapeHtml(userData.discriminator)}</p>
-          <p>User ID: ${escapeHtml(userData.id)}</p>
-          <p>IP: ${escapeHtml(record.ip)}</p>
-          <p>Masked Access Token:</p>
-          <div class="token-box">${escapeHtml(record.maskedAccessToken)}</div>
-        </div>
+        <h2>Login complete</h2>
+        <p>User: ${escapeHtml(userData.username)}#${escapeHtml(userData.discriminator)}</p>
+        <p>User ID: ${escapeHtml(userData.id)}</p>
+        <p>IP: ${escapeHtml(record.ip)}</p>
+        <p>Masked Access Token: ${escapeHtml(record.maskedAccessToken)}</p>
       </body>
       </html>
     `);
