@@ -1,28 +1,47 @@
 // pages/index.js
 export default function Home() {
   return (
-    <main style={{ fontFamily: 'Inter, system-ui, sans-serif', padding: 36 }}>
-      <h1>Login with Discord</h1>
-      <p>Click the button to authorize (consent-based). Your allowed Discord data + IP will be forwarded to a webhook you control.</p>
+    <main
+      style={{
+        fontFamily: 'Inter, system-ui, sans-serif',
+        padding: '40px',
+        maxWidth: '720px',
+        margin: '0 auto',
+        lineHeight: 1.6,
+        color: '#111'
+      }}
+    >
+      <h1 style={{ fontSize: '2rem', marginBottom: '20px' }}>Discord OAuth2 Demo</h1>
+      <p style={{ marginBottom: '20px' }}>
+        Click the button below to authorize your Discord account. Only the information you consent to will be fetched and sent to the configured webhook.
+      </p>
 
       <a
         href="/api/auth/login"
         style={{
           display: 'inline-block',
-          padding: '10px 18px',
-          borderRadius: 8,
-          background: '#5865F2',
-          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          backgroundColor: '#5865F2',
+          color: '#fff',
           textDecoration: 'none',
-          fontWeight: 700,
+          fontWeight: '600',
+          fontSize: '16px'
         }}
       >
         Login with Discord
       </a>
 
-      <p style={{ marginTop: 18, color: '#666' }}>
-        Note: tokens are used server-side only to fetch consented info and are not stored or forwarded. The webhook receives only consenting user data, guilds (if allowed), and IP.
-      </p>
+      <section style={{ marginTop: '30px', fontSize: '14px', color: '#666' }}>
+        <p>
+          Notes:
+        </p>
+        <ul>
+          <li>Only the data you consent to (e.g., username, discriminator, email, guilds) is fetched.</li>
+          <li>Access and refresh tokens are never stored or forwarded.</li>
+          <li>IP addresses may be included when sending data to the webhook.</li>
+        </ul>
+      </section>
     </main>
   );
 }
